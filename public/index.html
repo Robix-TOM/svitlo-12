@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Графік світла — 12 Група</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background-color: #f0f2f5;
+            color: #1c1e21;
+            padding: 16px;
+            display: flex;
+            justify-content: center;
+        }
+        .card {
+            width: 100%;
+            max-width: 440px;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #e4e6eb;
+            margin-bottom: 16px;
+        }
+        .header h1 { font-size: 20px; color: #050505; }
+        .group-pill {
+            display: inline-block;
+            background-color: #007bff;
+            color: #fff;
+            font-weight: bold;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-top: 6px;
+        }
+        .notice-box {
+            background-color: #e7f3ff;
+            border-left: 4px solid #1877f2;
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #1877f2;
+            margin-bottom: 16px;
+        }
+        .schedule-title { font-size: 15px; font-weight: 600; margin-bottom: 10px; color: #4b4f56; }
+        .schedule-list { list-style: none; margin-bottom: 16px; }
+        .schedule-item {
+            background: #f7f8fa;
+            border: 1px solid #e4e6eb;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 15px;
+            font-weight: 500;
+        }
+        .schedule-item strong { color: #d93025; }
+        .btn-refresh {
+            width: 100%;
+            background-color: #42b72a;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .footer { margin-top: 14px; text-align: center; font-size: 12px; color: #65676b; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="header">
+        <h1>Чернівціобленерго ⚡</h1>
+        <div class="group-pill">ГРУПА № 12</div>
+    </div>
+
+    <div class="notice-box" id="noticeBox">
+        Завантаження даних...
+    </div>
+
+    <div class="schedule-title">Заплановані відключення:</div>
+    <ul class="schedule-list" id="scheduleList">
+        <li class="schedule-item">Зчитування розкладу...</li>
+    </ul>
+
+    <button class="btn-refresh" onclick="fetchData(true)">Оновити інформацію</button>
+
+    <div class="footer">
+        Час останньої перевірки: <strong id="lastUpdated">-</strong>
+    </div>
+</div>
+
+<script>
+    async function fetchData(force = false) {
+        const endpoint = force ? '/api/refresh' : '/api/status';
+        try {
+            const res = await fetch(endpoint);
+            const data = await res.json();
+
+            document.getElementById('noticeBox').innerText = data.updateNotice || data.statusText;
+            document.getElementById('lastUpdated').innerText = data.lastUpdated || 'Щойно';
+
+            const list = document.getElementById('scheduleList');
+            list.innerHTML = '';
+
+            if (data.schedules && data.schedules.length > 0) {
+                data.schedules.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'schedule-item';
+                    li.innerHTML = `<span>Інтервал:</span> <strong>${item}</strong>`;
+                    list.appendChild(li);
+                });
+            } else {
+                list.innerHTML = '<li class="schedule-item" style="color: #2b8a3e;">Світло є / Відключень немає</li>';
+            }
+        } catch (e) {
+            document.getElementById('noticeBox').innerText = 'Не вдалося завантажити дані';
+        }
+    }
+
+    fetchData();
+</script>
+
+</body>
+</html>
